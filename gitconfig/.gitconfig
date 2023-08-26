@@ -1,0 +1,18 @@
+[user]
+	email = javierMorales9@gmail.com
+	name = Javier Morales de Vera
+[core]
+	autocrlf = true
+	eol = lf
+[alias]
+	st = status -sb
+	ll = log -10 --oneline
+	last = log -1 HEAD --stat
+	cm = commit -m
+	rt = reset --hard HEAD
+	gl = config --global -l
+	l = log --oneline
+	b = branch
+	cb = checkout -b
+[pager]
+	branch = false
