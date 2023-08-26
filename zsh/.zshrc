@@ -8,13 +8,16 @@ plugins=(
   git
   zsh-syntax-highlighting
   zsh-autosuggestions
-  zsh-vi-mode
 )
 
+#Opens tmux by default
+#if [ "$TMUX" = ""  ]; then tmux; fi
+
 source $ZSH/oh-my-zsh.sh
+source /usr/share/doc/fzf/examples/key-bindings.zsh
+source /usr/share/doc/fzf/examples/completion.zsh
 
-path+=(/home/javi/bin)
-
+path+=(/home/javi/bin:/home/javi/.local/bin)
 
 [[ -n "$WT_SESSION" ]] && {
   chpwd() {
@@ -53,7 +56,10 @@ alias grt='git reset --hard HEAD'
 alias python=python3
 alias pv='pipenv'
 
+alias stdocker=sudo service docker start
+
+bindkey -s ^f "tmux-sessionizer\n"
+
 # add Pulumi to the PATH
 export PATH=$PATH:$HOME/.pulumi/bin
 export PATH="${HOME}/.local/bin:$PATH"
-
