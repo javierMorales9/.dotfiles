@@ -1,7 +1,8 @@
 # Personal WSL configurations
 
-Clone this repo in your home directory ~/.dotfiles and the execute
+Clone this repo in your home directory *~/.dotfiles* and the execute
 
-'''bash
+```bash
 ~/.dotfiles/ubuntu
-''' 
+```
+
