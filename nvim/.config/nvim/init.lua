@@ -1,2 +1,2 @@
 require("javi")
-print('Hello')
+
