@@ -23,7 +23,8 @@ local cmp_mappings = lsp.defaults.cmp_mappings({
   ['<A-k>'] = cmp.mapping.select_prev_item(cmp_select),
   ['<A-j>'] = cmp.mapping.select_next_item(cmp_select),
   --['<A-m>'] = cmp.mapping.confirm({ select = true }),
-  ["<C-Space>"] = cmp.mapping.complete(),
+  -- press <C-y> to complete
+  -- ["<C-Space>"] = cmp.mapping.complete(),
 })
 
 lsp.set_preferences({
@@ -31,8 +32,8 @@ lsp.set_preferences({
 	sign_icons = { 
 		error = 'E',
 		warn = 'W',
-        	hint = 'H',
-        	info = 'I',
+        hint = 'H',
+        info = 'I',
 	}
 })
 
