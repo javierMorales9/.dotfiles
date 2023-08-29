@@ -20,11 +20,11 @@ lsp.configure('lua-language-server', {
 local cmp = require('cmp')
 local cmp_select = {behavior = cmp.SelectBehavior.Select}
 local cmp_mappings = lsp.defaults.cmp_mappings({
+  -- press <C-y> to complete
   ['<A-k>'] = cmp.mapping.select_prev_item(cmp_select),
   ['<A-j>'] = cmp.mapping.select_next_item(cmp_select),
-  --['<A-m>'] = cmp.mapping.confirm({ select = true }),
-  -- press <C-y> to complete
-  -- ["<C-Space>"] = cmp.mapping.complete(),
+  ['<A-y>'] = cmp.mapping.confirm({ select = true }),
+  ["<C-Space>"] = cmp.mapping.complete(),
 })
 
 lsp.set_preferences({
