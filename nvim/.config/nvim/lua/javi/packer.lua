@@ -1,4 +1,5 @@
 -- This file can be loaded by calling `lua require('plugins')` from your init.vim
+require('lspconfig').lua_ls.setup {}
 
 -- Only required if you have packer configured as `opt`
 vim.cmd.packadd('packer.nvim')
@@ -8,38 +9,55 @@ return require('packer').startup(function(use)
   use 'wbthomason/packer.nvim'
 
   use {
-	'nvim-telescope/telescope.nvim', tag = '0.1.2',
-	-- or                            , branch = '0.1.x',
-    	requires = { {'nvim-lua/plenary.nvim'} }
+    'nvim-telescope/telescope.nvim', tag = '0.1.2',
+    -- or                            , branch = '0.1.x',
+    requires = {
+      { 'nvim-lua/plenary.nvim' },
+      { 'nvim-telescope/telescope-live-grep-args.nvim' },
+    },
   }
-  use {"smartpde/telescope-recent-files"}
+  use { "smartpde/telescope-recent-files" }
 
   use({
-	  'rose-pine/neovim',
-	  as = 'rose-pine',
-	  config = function()
-		  vim.cmd('colorscheme rose-pine')
-	  end
+    "Pocco81/auto-save.nvim",
+    config = function()
+      require("auto-save").setup {
+        callbacks = {
+          before_saving = ":Neoformat<CR>",
+        }
+      }
+    end,
   })
 
-  use({'nvim-treesitter/nvim-treesitter', {run = ':TSUpdate'}})
+  use({
+    'rose-pine/neovim',
+    as = 'rose-pine',
+    config = function()
+      vim.cmd('colorscheme rose-pine')
+    end
+  })
+
+  use({ 'nvim-treesitter/nvim-treesitter', { run = ':TSUpdate' } })
   use('nvim-treesitter/playground')
   use('theprimeagen/harpoon')
   use('mbbill/undotree')
   use('tpope/vim-fugitive')
   use {
-	  'VonHeikemen/lsp-zero.nvim',
-	  branch = 'v2.x',
-	  requires = {
-	    -- LSP Support
-	    {'neovim/nvim-lspconfig'},             -- Required
-	    {'williamboman/mason.nvim'},           -- Optional
-	    {'williamboman/mason-lspconfig.nvim'}, -- Optional
+    'VonHeikemen/lsp-zero.nvim',
+    branch = 'v2.x',
+    requires = {
+      -- LSP Support
+      { 'neovim/nvim-lspconfig' },             -- Required
+      { 'williamboman/mason.nvim' },           -- Optional
+      { 'williamboman/mason-lspconfig.nvim' }, -- Optional
 
-	    -- Autocompletion
-	    {'hrsh7th/nvim-cmp'},     -- Required
-	    {'hrsh7th/cmp-nvim-lsp'}, -- Required
-	    {'L3MON4D3/LuaSnip'},     -- Required
-	  }
+      -- Autocompletion
+      { 'hrsh7th/nvim-cmp' },     -- Required
+      { 'hrsh7th/cmp-nvim-lsp' }, -- Required
+      { 'L3MON4D3/LuaSnip' },     -- Required
+    }
   }
+
+
+  use('mhartington/formatter.nvim')
 end)

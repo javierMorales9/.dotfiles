@@ -1,13 +1,16 @@
-Bueno vamos a ver, las movidas que hay por hacer son las siguientes:
+Vale, vamos a ver como esta la movida. La cosa no es facil de solucionar.
 
-Setup
-1. Acabar de conseguir que la movida del ansible funcione incluido
-2. Meter el .dotfiles en el setup, no hacen falta dos repos distintos.
-3. Lo de moverse por el 
-4. Meter todas las carpetas al personal.
-5. Meter el copilot.
-6. Probar a meter java y empezar con el compilador.
+Claro la cuestion tiene claramente que ver con que hay dos onboarding.
+El del primero tio, y el del resto. Realmente solo hay un onboarding,
+el del primero. El resto de gente no tiene onboarding.
 
-Work
-1. Acabar de mergear lo de Nikhil
-2. Pensar en nuevas movidas que desarrollar.
+Llega el primero:
+1. El usuario llega a trackey y es redirigido accounts.trackey.io (clerk)
+2. El usuario se registra y nosotros le creamos la account sin asociarla todavia
+   a ninguna org.
+3. El usuario completa el onboarding y entonces le creamos la org correspondiente 
+   y la asociamos a la cuenta.
+
+Llega el segundo.
+
+

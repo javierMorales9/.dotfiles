@@ -65,3 +65,13 @@ bindkey -s ^f "tmux-sessionizer\n"
 # add Pulumi to the PATH
 export PATH=$PATH:$HOME/.pulumi/bin
 export PATH="${HOME}/.local/bin:$PATH"
+export PATH="${HOME}/personal/sumneko/bin:$PATH"
+alias luamake=/home/javi/personal/sumneko/3rd/luamake/luamake
+
+# pnpm
+export PNPM_HOME="/home/javi/.local/share/pnpm"
+case ":$PATH:" in
+  *":$PNPM_HOME:"*) ;;
+  *) export PATH="$PNPM_HOME:$PATH" ;;
+esac
+# pnpm end

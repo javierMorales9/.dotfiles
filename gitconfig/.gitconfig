@@ -2,7 +2,7 @@
 	email = javierMorales9@gmail.com
 	name = Javier Morales de Vera
 [core]
-	autocrlf = true
+	autocrlf = input
 	eol = lf
 [alias]
 	st = status -sb
