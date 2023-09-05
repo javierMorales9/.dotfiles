@@ -42,6 +42,9 @@ return require('packer').startup(function(use)
   use('theprimeagen/harpoon')
   use('mbbill/undotree')
   use('tpope/vim-fugitive')
+  use('mhartington/formatter.nvim')
+  use('github/copilot.vim')
+
   use {
     'VonHeikemen/lsp-zero.nvim',
     branch = 'v2.x',
@@ -58,6 +61,29 @@ return require('packer').startup(function(use)
     }
   }
 
+  --Debugging
+  use {
+    "mfussenegger/nvim-dap",
+    opt = true,
+    module = { "dap" },
+    requires = {
+      "theHamsta/nvim-dap-virtual-text",
+      "rcarriga/nvim-dap-ui",
+      "mfussenegger/nvim-dap-python",
+      "nvim-telescope/telescope-dap.nvim",
+      { "leoluz/nvim-dap-go", module = "dap-go" },
+      { "jbyuki/one-small-step-for-vimkind", module = "osv" },
+      { "mxsdev/nvim-dap-vscode-js", module = { "dap-vscode-js" } },
+      {
+        "microsoft/vscode-js-debug",
+        opt = true,
+        run = "npm install --legacy-peer-deps && npx gulp vsDebugServerBundle && mv dist out",
+      },
+    },
+    config = function()
+      require("config.dap").setup()
+    end,
+    disable = false,
+  }
 
-  use('mhartington/formatter.nvim')
 end)
