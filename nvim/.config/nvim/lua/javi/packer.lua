@@ -68,7 +68,7 @@ return require('packer').startup(function(use)
     module = { "dap" },
     requires = {
       "theHamsta/nvim-dap-virtual-text",
-      "rcarriga/nvim-dap-ui",
+      {"rcarriga/nvim-dap-ui", module="dapui"},
       "mfussenegger/nvim-dap-python",
       "nvim-telescope/telescope-dap.nvim",
       { "leoluz/nvim-dap-go", module = "dap-go" },
