@@ -28,10 +28,6 @@ local function configure()
 end
 
 local function configure_exts()
-  require("nvim-dap-virtual-text").setup {
-    commented = true,
-  }
-
   local dap, dapui = require "dap", require "dapui"
   dapui.setup {} -- use default
   dap.listeners.after.event_initialized["dapui_config"] = function()
