@@ -1,5 +1,5 @@
 vim.g.mapleader = " "
-vim.keymap.set("n", "<leader>ls", vim.cmd.Ex)
+--vim.keymap.set("n", "<leader>ls", vim.cmd.Ex)
 
 -- to move the selected lines (Classic Alt up Alt down)
 vim.keymap.set("v", "J", ":m '>+1<CR>gv=gv")

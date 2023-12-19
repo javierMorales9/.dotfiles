@@ -62,10 +62,14 @@ alias stdocker=sudo service docker start
 
 bindkey -s ^f "tmux-sessionizer\n"
 
-# add Pulumi to the PATH
+export FLYCTL_INSTALL="/home/javi/.fly"
+
 export PATH=$PATH:$HOME/.pulumi/bin
 export PATH="${HOME}/.local/bin:$PATH"
 export PATH="${HOME}/personal/sumneko/bin:$PATH"
+export PATH="/usr/local/go/bin:$PATH"
+export PATH="${HOME}/go/bin:$PATH"
+export PATH="$FLYCTL_INSTALL/bin:$PATH"
 alias luamake=/home/javi/personal/sumneko/3rd/luamake/luamake
 
 # pnpm
