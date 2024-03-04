@@ -1,5 +1,5 @@
 [user]
-	email = javierMorales9@gmail.com
+	email = javi@trackey.io
 	name = Javier Morales de Vera
 [core]
 	autocrlf = input
@@ -16,3 +16,5 @@
 	cb = checkout -b
 [pager]
 	branch = false
+[use]
+	email = javi@trackey.io

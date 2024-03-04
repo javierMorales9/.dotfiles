@@ -1,6 +1,7 @@
 local M = {}
 
 local function configure()
+  require('dap-go').setup()
   local dap_breakpoint = {
     error = {
       text = "🟥",

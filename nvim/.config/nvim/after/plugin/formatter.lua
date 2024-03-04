@@ -10,6 +10,9 @@ local settings = {
   },
   -- Use the special "*" filetype for defining formatter configurations on
   -- any filetype
+  python = {
+    require("formatter.filetypes.python").black,
+  },
   ["*"] = {
     -- "formatter.filetypes.any" defines default configurations for any
     -- filetype
