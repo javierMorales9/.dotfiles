@@ -14,6 +14,11 @@ vim.keymap.set(
   ":lua require('telescope').extensions.live_grep_args.live_grep_args()<CR>"
 )
 
+vim.keymap.set(
+  "n",
+  "<leader>ld",
+  ":lua require('telescope.builtin').diagnostics()<CR>"
+)
 -- To do find replace follow:
 -- 1. Call <leader>ff and search for a pattern.
 -- 2. When you get the list for results in telescope do <C-q> to move 

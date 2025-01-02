@@ -13,6 +13,9 @@ local settings = {
   python = {
     require("formatter.filetypes.python").black,
   },
+  golang = {
+    require("formatter.filetypes.go").gofmt,
+  },
   ["*"] = {
     -- "formatter.filetypes.any" defines default configurations for any
     -- filetype

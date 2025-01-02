@@ -9,6 +9,7 @@ plugins=(
   git
   zsh-syntax-highlighting
   zsh-autosuggestions
+  poetry
 )
 
 #Opens tmux by default
@@ -18,7 +19,7 @@ source $ZSH/oh-my-zsh.sh
 source /usr/share/doc/fzf/examples/key-bindings.zsh
 source /usr/share/doc/fzf/examples/completion.zsh
 
-path+=(/home/javi/bin:/home/javi/.local/bin)
+path+=(/home/javi/bin:/home/javi/.local/bin:/home/javi/.local/share/ponyup/bin)
 
 [[ -n "$WT_SESSION" ]] && {
   chpwd() {

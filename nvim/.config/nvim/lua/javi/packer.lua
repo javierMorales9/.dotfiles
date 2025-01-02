@@ -31,6 +31,16 @@ return require("packer").startup(function(use)
 	})
 
 	use({
+		"stevearc/aerial.nvim",
+		config = function()
+			require("aerial").setup()
+		end,
+	})
+
+	use("junegunn/gv.vim")
+	use("airblade/vim-gitgutter")
+
+	use({
 		"rose-pine/neovim",
 		as = "rose-pine",
 		config = function()
@@ -79,7 +89,7 @@ return require("packer").startup(function(use)
 			{ "rcarriga/nvim-dap-ui", module = "dapui" },
 			"mfussenegger/nvim-dap-python",
 			"nvim-telescope/telescope-dap.nvim",
-      {"leoluz/nvim-dap-go", module = "dap-go" },
+			{ "leoluz/nvim-dap-go", module = "dap-go" },
 			{ "jbyuki/one-small-step-for-vimkind", module = "osv" },
 			{ "mxsdev/nvim-dap-vscode-js", module = { "dap-vscode-js" } },
 			{
