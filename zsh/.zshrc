@@ -96,3 +96,7 @@ fi
 unset __conda_setup
 # <<< conda initialize <<<
 
+
+# Rvenb. For Ruby versions
+export PATH="$HOME/.rbenv/bin:$PATH"
+eval "$(rbenv init -)"

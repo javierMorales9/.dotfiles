@@ -18,3 +18,5 @@
 	branch = false
 [use]
 	email = javi@trackey.io
+[credential]
+	helper = store

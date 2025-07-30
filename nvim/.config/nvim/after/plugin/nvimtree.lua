@@ -25,4 +25,9 @@ nvimtree.setup{
     enable = true,
     update_root = true
   },
+  git = {
+    enable = true,
+    ignore = false,
+    timeout = 500,
+  },
 }
