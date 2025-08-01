@@ -1,134 +1,134 @@
--- ~/.wezterm.lua  —  WezTerm configuration adapted from your tmux workflow
--- Tested against WezTerm ≥ 20240203‑110809‑a1b0d8e8 on Windows 11 & WSL.
+--[[
+WezTerm Configuration — Fully Annotated
+======================================
+A self‑contained, cross‑platform configuration that illustrates:
+  • Using **workspaces** as lightweight “projects”.
+  • Creating an **interactive launcher** (fzf‑style) in Lua only; no external script required.
+  • Key maps for tabs, panes and favourite directories.
+  • How to pass information from the shell **back into WezTerm** through a
+    *user variable* and react to it with the `user‑var‑changed` event.
+
+All comments are in English and deliberately verbose so you can use this file
+as living documentation.
+--]]
 
 local wezterm = require("wezterm")
 local act = wezterm.action
 local config = wezterm.config_builder()
 
 -- ##########################################################################
--- 0.  Basics
+-- 0.  BASIC PREFERENCES  ───────────────────────────────────────────────────
 -- ##########################################################################
-config.default_prog = { "pwsh.exe", "-NoLogo" } -- open directly in PowerShell Core
-config.leader = { key = "h", mods = "CTRL" } -- same prefix as your tmux <C-h>
-config.hide_tab_bar_if_only_one_tab = false -- always show the tab bar
+config.default_prog = { "pwsh.exe", "-NoLogo" } -- start in PowerShell Core on Windows
+config.leader = { key = "h", mods = "CTRL" } -- prefix for custom key‑bindings
+config.hide_tab_bar_if_only_one_tab = false -- keep tab‑bar for context
+config.keys = {} -- ensure fresh key table
 
--- ensure we have a keys table before we start inserting
-config.keys = {}
+config.default_workspace = ".dotfiles" -- **NEW**: spawn into this workspace
+config.default_cwd = wezterm.home_dir .. "/.dotfiles" -- open first tab in ~/.dotfiles
 
 -- ##########################################################################
--- 1.  Sessionizer → Workspaces
---     Ctrl‑h f → list top‑level dirs and switch/create workspace
+-- 1.  PROJECT LAUNCHER (WORKSPACE SELECTOR)  ───────────────────────────────
 -- ##########################################################################
-local roots = {
+-- Purpose  : Let the user fuzzy‑pick a directory and drop into a dedicated
+--            workspace.  One workspace per directory keeps long‑running
+--            tasks isolated and is cheaper than opening a full OS terminal.
+-- How it works:
+--   1. We scan a few high‑level folders below home.
+--   2. The list is fed into `InputSelector` with `fuzzy=true`.
+--   3. When the user hits <Enter>, WezTerm triggers `SwitchToWorkspace`.
+--      If the workspace does not exist yet, `spawn` tells WezTerm to create
+--      the first tab in that workspace using the given CWD.
+
+local search_roots = {
+	wezterm.home_dir .. "/",
 	wezterm.home_dir .. "/work",
 	wezterm.home_dir .. "/personal",
 	wezterm.home_dir .. "/sandbox",
 	wezterm.home_dir .. "/tutorials",
+	wezterm.home_dir .. "/General", -- For windows
+	wezterm.home_dir .. "/General/Program", -- For windows
 }
 
---- read first‑level children of each root and build {id=path, label=dir}
+---@return table[]  list of {id=<absolute path>, label=<leaf>}
 local function collect_projects()
-	local choices = {}
-	for _, root in ipairs(roots) do
-		local ok, items = pcall(wezterm.read_dir, root)
+	local list = {}
+	for _, root in ipairs(search_roots) do
+		local ok, entries = pcall(wezterm.read_dir, root)
 		if ok then
-			for _, p in ipairs(items) do
-				local label = p:match("[^/\\]+$")
-				table.insert(choices, { id = p, label = label })
+			for _, p in ipairs(entries) do
+				local leaf = p:match("[^/\\]+$")
+				table.insert(list, { id = p, label = leaf })
 			end
 		end
 	end
-	table.sort(choices, function(a, b)
-		return a.label < b.label
+	table.sort(list, function(a, b)
+		return a.label:lower() < b.label:lower()
 	end)
-	return choices
+	return list
 end
 
--- Ctrl‑h f: fuzzy selector –> workspace
+-- Leader f  → open launcher
 config.keys[#config.keys + 1] = {
 	mods = "LEADER",
 	key = "f",
 	action = act.InputSelector({
-		title = "Open Workspace",
-		description = "Selecciona proyecto",
+		title = "Open Project Workspace",
+		description = "Type to fuzzy‑match a directory",
 		fuzzy = true,
 		choices = collect_projects(),
-		action = wezterm.action_callback(function(win, p, id, label)
+		action = wezterm.action_callback(function(win, pane, id, label)
 			if not id then
 				return
 			end
+			local ws = label:gsub("[^%w_]", "_")
 			win:perform_action(
 				act.SwitchToWorkspace({
-					name = label:gsub("[^%w_]", "_"),
-					spawn = { cwd = id, label = "󰏖  " .. label },
+					name = ws,
+					spawn = { cwd = id, label = "📂  " .. label },
 				}),
-				p
+				pane
 			)
 		end),
 	}),
 }
 
 -- ##########################################################################
--- 2.  Pane / Tab management (mirrors tmux bindings)
+-- 2.  TABS, PANES, NAVIGATION  ─────────────────────────────────────────────
 -- ##########################################################################
 local function map(mods, key, action)
 	config.keys[#config.keys + 1] = { mods = mods, key = key, action = action }
 end
 
-map("CTRL", "f", act.SendString("wezterm-launcher\r"))
+-- Basic tab management
 map("LEADER", "w", act.SpawnTab("CurrentPaneDomain"))
--- splits
-map("LEADER", "d", act.SplitHorizontal({ domain = "CurrentPaneDomain" }))
-map("LEADER", "a", act.SplitVertical({ domain = "CurrentPaneDomain" }))
-map("CTRL", "d", act.CloseCurrentPane({ confirm = true }))
--- focus movement (vim‑style)
-map("LEADER", "H", act.ActivatePaneDirection("Left"))
-map("LEADER", "J", act.ActivatePaneDirection("Down"))
-map("LEADER", "K", act.ActivatePaneDirection("Up"))
-map("LEADER", "L", act.ActivatePaneDirection("Right"))
--- new tab
--- jump to tab 1..9
 for i = 1, 9 do
 	map("LEADER", tostring(i), act.ActivateTab(i - 1))
 end
 
-map(
-	"LEADER",
-	"t",
-	act.ShowLauncherArgs({
-		flags = "FUZZY|WORKSPACES",
-	})
-)
+-- Split / close panes
+map("LEADER", "d", act.SplitHorizontal({ domain = "CurrentPaneDomain" }))
+map("LEADER", "a", act.SplitVertical({ domain = "CurrentPaneDomain" }))
+map("CTRL", "d", act.CloseCurrentPane({ confirm = true }))
+map("CTRL|SHIFT", "d", act.QuitApplication)
 
-map(
-	"LEADER",
-	"n",
-	wezterm.action_callback(function(win, pane)
-		--pane:send_paste("Antes")
-		wezterm.sleep_ms(50) -- pequeño respiro
-		local ok, out = wezterm.run_child_process({ "cmd", "/c", "dir" })
-		wezterm.sleep_ms(50)
-		--pane:send_paste(("Despues\n%s\n%s\n"):format(out or "", err or ""))
-	end)
-)
+-- Move focus (vim‑style H/J/K/L)
+map("LEADER", "H", act.ActivatePaneDirection("Left"))
+map("LEADER", "J", act.ActivatePaneDirection("Down"))
+map("LEADER", "K", act.ActivatePaneDirection("Up"))
+map("LEADER", "L", act.ActivatePaneDirection("Right"))
+
+-- Quick launcher for PE scripts from the current pane (example)
+map("CTRL", "f", act.SendString("wezterm-launcher\r"))
 
 -- ##########################################################################
--- 3.  Direct shortcuts to favourite repos (j/k/l/m/p)
+-- 3.  QUICK‑ACCESS WORKSPACES (OPTIONAL SHORTCUTS)  ────────────────────────
 -- ##########################################################################
+-- Single‑key jumps for most‑used repos.  Comment out if not needed.
 local quick = {
 	j = wezterm.home_dir .. "/.dotfiles",
 	k = wezterm.home_dir .. "/General/Program/manuscritten",
-	--l = wezterm.home_dir .. "/personal/bluesun",
-	--m = wezterm.home_dir .. "/personal/rideshare",
-	--p = wezterm.home_dir .. "/personal/rideshare-go",
 }
-
-wezterm.on("user-var-changed", function(window, pane, name, value)
-	if name == "WEZ_SWITCH_WS" and value and #value > 0 then
-		window:perform_action(act.SwitchToWorkspace({ name = value }), pane)
-	end
-end)
-
 for key, path in pairs(quick) do
 	map(
 		"LEADER",
@@ -141,26 +141,45 @@ for key, path in pairs(quick) do
 end
 
 -- ##########################################################################
--- 4.  Launch menu entries (Ctrl‑Shift‑T → right‑click +)
+-- 4.  LAUNCH MENU (CTRL‑SHIFT‑T context)  ──────────────────────────────────
 -- ##########################################################################
 config.launch_menu = {
-	{
-		label = "PowerShell",
-		args = { "pwsh.exe", "-NoLogo" },
-	},
-	{
-		label = "WSL Ubuntu",
-		domain = { DomainName = "WSL:Ubuntu-22.04" },
-	},
-	{
-		label = "Git Bash",
-		args = { "C:/Program Files/Git/bin/bash.exe", "--login", "-i" },
-	},
+	{ label = "PowerShell", args = { "pwsh.exe", "-NoLogo" } },
+	{ label = "WSL Ubuntu", domain = { DomainName = "WSL:Ubuntu-22.04" } },
+	{ label = "Git Bash", args = { "C:/Program Files/Git/bin/bash.exe", "--login", "-i" } },
 }
 
 -- ##########################################################################
--- 5.  Appearance: show workspace in window title + colours similar to tmux
+-- 5.  THE `user‑var‑changed` EVENT  ────────────────────────────────────────
 -- ##########################################################################
+-- WezTerm allows a pane to receive **OSC‑1337** escape sequences that encode
+-- arbitrary *user variables* (name/value).  Syntax from the shell:
+--
+--   printf "\e]1337;SetUserVar=<NAME>=<BASE64_VALUE>\a"
+--
+-- The string is Base64‑encoded because OSC payloads must be printable.
+-- When such a sequence arrives, WezTerm fires **`user‑var‑changed`** and
+-- passes you:
+--   • window   – the main window object
+--   • pane     – the originating pane
+--   • name     – variable name (string)
+--   • value    – decoded UTF‑8 value (string)
+--
+-- Here we leverage that to implement an *out‑of‑band workspace switch*:
+-- a shell script (or external process) can tell WezTerm, "please activate
+-- workspace X" without needing a dedicated CLI flag.
+
+wezterm.on("user-var-changed", function(window, pane, name, value)
+	if name == "WEZ_SWITCH_WS" and value and #value > 0 then
+		-- The action is deferred to WezTerm; scripts only emit the signal.
+		window:perform_action(act.SwitchToWorkspace({ name = value }), pane)
+	end
+end)
+
+-- ##########################################################################
+-- 6.  APPEARANCE  ──────────────────────────────────────────────────────────
+-- ##########################################################################
+-- Display the active workspace in the window title for quick orientation.
 wezterm.on("format-window-title", function()
 	return "🗂  " .. (wezterm.mux.get_active_workspace() or "")
 end)
