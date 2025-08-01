@@ -150,11 +150,11 @@ function Remove-Chocolatey {
 }
 
 # -------------------------- MAIN ---------------------------------------------
-
 Uninstall-Package 'wezterm'     'WezTerm'
 Uninstall-Package 'neovim'      'Neovim'
 Uninstall-Package 'nodejs-lts'  'Node.js LTS'
 Uninstall-Package 'ripgrep'     'ripgrep'
+Uninstall-Package 'fzf'         'fzf'
 Uninstall-Package 'llvm'        'Clang (LLVM)'
 
 Remove-TargetIfDirOrSymlink -target (Join-Path $originalUserHome '.wezterm.lua')

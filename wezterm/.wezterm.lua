@@ -1,132 +1,176 @@
--- ~/.config/wezterm/wezterm.lua
-local wezterm = require 'wezterm'
-local mux      = wezterm.mux
-local act      = wezterm.action
-local config   = wezterm.config_builder()
+-- ~/.wezterm.lua  —  WezTerm configuration adapted from your tmux workflow
+-- Tested against WezTerm ≥ 20240203‑110809‑a1b0d8e8 on Windows 11 & WSL.
 
-----------------------------------------------------------------------
--- 1.   Ajustes básicos
-----------------------------------------------------------------------
--- Prefijo equivalente al <C-h> de tmux
-config.leader = { key = 'h', mods = 'CTRL' }
+local wezterm = require("wezterm")
+local act = wezterm.action
+local config = wezterm.config_builder()
 
--- Arranca en PowerShell en Windows, pero define accesos rápidos
--- para WSL y Git‑Bash (tócalo a tu gusto).
-config.default_domain = 'PowerShell'
-config.launch_menu = {
-  { label = 'PowerShell', domain = 'PowerShell' },
-  { label = 'WSL Ubuntu', domain = 'WSL:Ubuntu-22.04' },
-  { label = 'Git Bash',  domain = 'GitBash' },
-}
+-- ##########################################################################
+-- 0.  Basics
+-- ##########################################################################
+config.default_prog = { "pwsh.exe", "-NoLogo" } -- open directly in PowerShell Core
+config.leader = { key = "h", mods = "CTRL" } -- same prefix as your tmux <C-h>
+config.hide_tab_bar_if_only_one_tab = false -- always show the tab bar
 
-----------------------------------------------------------------------
--- 2.   “Sessionizer” → InputSelector + Workspace
---      Ctrl‑h f  → lista de proyectos, crea/salta workspace
-----------------------------------------------------------------------
---  Carpetas raíz que quieres escanear (ajusta las que necesites).
+-- ensure we have a keys table before we start inserting
+config.keys = {}
+
+-- ##########################################################################
+-- 1.  Sessionizer → Workspaces
+--     Ctrl‑h f → list top‑level dirs and switch/create workspace
+-- ##########################################################################
 local roots = {
-  wezterm.home_dir .. '/work',
-  wezterm.home_dir .. '/personal',
-  wezterm.home_dir .. '/sandbox',
-  wezterm.home_dir .. '/tutorials',
+	wezterm.home_dir .. "/work",
+	wezterm.home_dir .. "/personal",
+	wezterm.home_dir .. "/sandbox",
+	wezterm.home_dir .. "/tutorials",
 }
 
--- Explora cada raíz (primer nivel) y construye la lista de proyectos.
+--- read first‑level children of each root and build {id=path, label=dir}
 local function collect_projects()
-  local choices = {}
-  for _, base in ipairs(roots) do
-    for _, path in ipairs(wezterm.read_dir(base)) do            -- :contentReference[oaicite:0]{index=0}
-      local label = path:match('[^/\\]+$')                      -- basename
-      table.insert(choices, { id = path, label = label })
-    end
-  end
-  table.sort(choices, function(a, b) return a.label < b.label end)
-  return choices
+	local choices = {}
+	for _, root in ipairs(roots) do
+		local ok, items = pcall(wezterm.read_dir, root)
+		if ok then
+			for _, p in ipairs(items) do
+				local label = p:match("[^/\\]+$")
+				table.insert(choices, { id = p, label = label })
+			end
+		end
+	end
+	table.sort(choices, function(a, b)
+		return a.label < b.label
+	end)
+	return choices
 end
 
--- Binding <LEADER> f  → muestra selector difuso y abre/salta workspace
-table.insert(config.keys, {
-  mods = 'LEADER', key = 'f',
-  action = wezterm.action_callback(function(window, pane)
-    window:perform_action(
-      act.InputSelector{                                      -- :contentReference[oaicite:1]{index=1}
-        fuzzy      = true,
-        title      = 'Open workspace',
-        description= 'Escribe para buscar proyecto',
-        choices    = collect_projects(),
-        action     = wezterm.action_callback(function(win, p, id, label)
-          if not id then return end
-          win:perform_action(
-            act.SwitchToWorkspace{                            -- :contentReference[oaicite:2]{index=2}
-              name  = label:gsub('[^%w_]', '_'),
-              spawn = { cwd = id, label = '󰏖  ' .. label },
-            }, p)
-        end),
-      },
-      pane)
-  end)
-})
-
-----------------------------------------------------------------------
--- 3.   Navegación y gestión de panes/tabs
-----------------------------------------------------------------------
-local nav_keys = {
-  -- Splits
-  {mods='LEADER', key='"', action=act.SplitHorizontal{domain='CurrentPaneDomain'}},
-  {mods='LEADER', key='%', action=act.SplitVertical  {domain='CurrentPaneDomain'}},
-  -- Mover foco entre panes (vi‑like)
-  {mods='LEADER', key='H', action=act.ActivatePaneDirection'Left'},
-  {mods='LEADER', key='J', action=act.ActivatePaneDirection'Down'},
-  {mods='LEADER', key='K', action=act.ActivatePaneDirection'Up'},
-  {mods='LEADER', key='L', action=act.ActivatePaneDirection'Right'},
-  -- Nueva “window” (= tab)  Ctrl‑h w
-  {mods='LEADER', key='w', action=act.SpawnTab'CurrentPaneDomain'},
+-- Ctrl‑h f: fuzzy selector –> workspace
+config.keys[#config.keys + 1] = {
+	mods = "LEADER",
+	key = "f",
+	action = act.InputSelector({
+		title = "Open Workspace",
+		description = "Selecciona proyecto",
+		fuzzy = true,
+		choices = collect_projects(),
+		action = wezterm.action_callback(function(win, p, id, label)
+			if not id then
+				return
+			end
+			win:perform_action(
+				act.SwitchToWorkspace({
+					name = label:gsub("[^%w_]", "_"),
+					spawn = { cwd = id, label = "󰏖  " .. label },
+				}),
+				p
+			)
+		end),
+	}),
 }
--- 1…9 → tab n   (WezTerm empieza en 0)
+
+-- ##########################################################################
+-- 2.  Pane / Tab management (mirrors tmux bindings)
+-- ##########################################################################
+local function map(mods, key, action)
+	config.keys[#config.keys + 1] = { mods = mods, key = key, action = action }
+end
+
+map("CTRL", "f", act.SendString("wezterm-launcher\r"))
+map("LEADER", "w", act.SpawnTab("CurrentPaneDomain"))
+-- splits
+map("LEADER", "d", act.SplitHorizontal({ domain = "CurrentPaneDomain" }))
+map("LEADER", "a", act.SplitVertical({ domain = "CurrentPaneDomain" }))
+map("CTRL", "d", act.CloseCurrentPane({ confirm = true }))
+-- focus movement (vim‑style)
+map("LEADER", "H", act.ActivatePaneDirection("Left"))
+map("LEADER", "J", act.ActivatePaneDirection("Down"))
+map("LEADER", "K", act.ActivatePaneDirection("Up"))
+map("LEADER", "L", act.ActivatePaneDirection("Right"))
+-- new tab
+-- jump to tab 1..9
 for i = 1, 9 do
-  table.insert(nav_keys,
-    {mods='LEADER', key=tostring(i), action=act.ActivateTab(i-1)})
+	map("LEADER", tostring(i), act.ActivateTab(i - 1))
 end
-for _, k in ipairs(nav_keys) do table.insert(config.keys, k) end
 
-----------------------------------------------------------------------
--- 4.   Atajos directos a carpetas concretas (j/k/l/m/p)
-----------------------------------------------------------------------
-local direct = {
-  j = wezterm.home_dir .. '/.dotfiles',
-  k = wezterm.home_dir .. '/work/cartas',
-  l = wezterm.home_dir .. '/personal/bluesun',
-  m = wezterm.home_dir .. '/personal/rideshare',
-  p = wezterm.home_dir .. '/personal/rideshare-go',
+map(
+	"LEADER",
+	"t",
+	act.ShowLauncherArgs({
+		flags = "FUZZY|WORKSPACES",
+	})
+)
+
+map(
+	"LEADER",
+	"n",
+	wezterm.action_callback(function(win, pane)
+		--pane:send_paste("Antes")
+		wezterm.sleep_ms(50) -- pequeño respiro
+		local ok, out = wezterm.run_child_process({ "cmd", "/c", "dir" })
+		wezterm.sleep_ms(50)
+		--pane:send_paste(("Despues\n%s\n%s\n"):format(out or "", err or ""))
+	end)
+)
+
+-- ##########################################################################
+-- 3.  Direct shortcuts to favourite repos (j/k/l/m/p)
+-- ##########################################################################
+local quick = {
+	j = wezterm.home_dir .. "/.dotfiles",
+	k = wezterm.home_dir .. "/General/Program/manuscritten",
+	--l = wezterm.home_dir .. "/personal/bluesun",
+	--m = wezterm.home_dir .. "/personal/rideshare",
+	--p = wezterm.home_dir .. "/personal/rideshare-go",
 }
-for key, path in pairs(direct) do
-  table.insert(config.keys, {
-    mods='LEADER', key=key,
-    action=act.SwitchToWorkspace{
-      name  = path:match('[^/\\]+$'),
-      spawn = { cwd = path },
-    }
-  })
+
+wezterm.on("user-var-changed", function(window, pane, name, value)
+	if name == "WEZ_SWITCH_WS" and value and #value > 0 then
+		window:perform_action(act.SwitchToWorkspace({ name = value }), pane)
+	end
+end)
+
+for key, path in pairs(quick) do
+	map(
+		"LEADER",
+		key,
+		act.SwitchToWorkspace({
+			name = path:match("[^/\\]+$"),
+			spawn = { cwd = path },
+		})
+	)
 end
 
-----------------------------------------------------------------------
--- 5.   Barra de estado / títulos
-----------------------------------------------------------------------
--- Muestra el nombre del workspace activo en la barra de título:
-wezterm.on('format-window-title', function()
-  return '🗂  ' .. (mux.get_active_workspace() or '')
-end)                                                      -- :contentReference[oaicite:3]{index=3}
+-- ##########################################################################
+-- 4.  Launch menu entries (Ctrl‑Shift‑T → right‑click +)
+-- ##########################################################################
+config.launch_menu = {
+	{
+		label = "PowerShell",
+		args = { "pwsh.exe", "-NoLogo" },
+	},
+	{
+		label = "WSL Ubuntu",
+		domain = { DomainName = "WSL:Ubuntu-22.04" },
+	},
+	{
+		label = "Git Bash",
+		args = { "C:/Program Files/Git/bin/bash.exe", "--login", "-i" },
+	},
+}
 
--- Colores parecidos a tu tmux (gris oscuro + texto azul):
+-- ##########################################################################
+-- 5.  Appearance: show workspace in window title + colours similar to tmux
+-- ##########################################################################
+wezterm.on("format-window-title", function()
+	return "🗂  " .. (wezterm.mux.get_active_workspace() or "")
+end)
+
 config.colors = {
-  tab_bar = {
-    background = '#333333',
-    active_tab = { bg_color = '#333333', fg_color = '#5eacd3' },
-    inactive_tab = { bg_color = '#222222', fg_color = '#aaaaaa' },
-  }
+	tab_bar = {
+		background = "#333333",
+		active_tab = { bg_color = "#333333", fg_color = "#5eacd3" },
+		inactive_tab = { bg_color = "#222222", fg_color = "#bbbbbb" },
+	},
 }
-
--- Deja visible la tab‑bar incluso con una sola pestaña
-config.hide_tab_bar_if_only_one_tab = false
 
 return config

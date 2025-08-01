@@ -106,9 +106,12 @@ require("lazy").setup({
 			-- 3. Now to replace do
 			--      :cdo s/<previous string>/<new string>/gc to confirm each replace
 			--      :cdo s/<previous string>/<new string>/g to just do them all
-			vim.keymap.set("n", "<leader>ff", extensions.live_grep_args.live_grep_args, { desc = "[L]ive [G]rep" })
+			vim.keymap.set("n", "<leader>ff", function()
+				extensions.live_grep_args.live_grep_args()
+			end, { desc = "[L]ive [G]rep" })
 			vim.keymap.set("n", "<leader>re", extensions.recent_files.pick, { noremap = true, silent = true })
 			vim.keymap.set("n", "<leader>sd", builtin.diagnostics, { desc = "[S]earch [D]iagnostics" })
+			vim.keymap.set("n", "<leader>q", vim.diagnostic.setloclist, { desc = "Open diagnostic [Q]uickfix list" })
 			vim.keymap.set("n", "<leader>sr", builtin.resume, { desc = "[S]earch [R]esume" })
 
 			-- Slightly advanced example of overriding default behavior and theme
@@ -235,7 +238,6 @@ require("lazy").setup({
 				--
 				-- But for many setups, the LSP (`ts_ls`) will work just fine
 				--
-
 				ts_ls = {},
 				lua_ls = {
 					-- cmd = { ... },
@@ -247,7 +249,10 @@ require("lazy").setup({
 								callSnippet = "Replace",
 							},
 							-- You can toggle below to ignore Lua_LS's noisy `missing-fields` warnings
-							-- diagnostics = { disable = { 'missing-fields' } },
+							diagnostics = {
+								disable = { "missing-fields" },
+								globals = { "vim" },
+							},
 						},
 					},
 				},
@@ -544,8 +549,7 @@ require("lazy").setup({
 				},
 			})
 
-			vim.keymap.set("n", "-", "<CMD>Oil<CR>", { desc = "Open parent directory" })
-			vim.keymap.set("n", "<leader>-", require("oil").toggle_float)
+			vim.keymap.set("n", "-", require("oil").toggle_float, { desc = "Open parent directory" })
 		end,
 	},
 
@@ -555,6 +559,8 @@ require("lazy").setup({
 			vim.keymap.set("n", "<leader>gs", vim.cmd.Git)
 		end,
 	},
+
+	{ "junegunn/gv.vim" },
 
 	{
 		"ThePrimeagen/harpoon",
@@ -572,17 +578,16 @@ require("lazy").setup({
 			end)
 
 			vim.keymap.set("n", "<C-j>", function()
-				print("Como esta la pe;a")
-				harpoon.list():select(1)
+				harpoon:list():select(1)
 			end)
 			vim.keymap.set("n", "<C-k>", function()
-				harpoon.list():select(2)
+				harpoon:list():select(2)
 			end)
 			vim.keymap.set("n", "<C-l>", function()
-				harpoon.list():select(3)
+				harpoon:list():select(3)
 			end)
 			vim.keymap.set("n", "<C-;>", function()
-				harpoon.list():select(4)
+				harpoon:list():select(4)
 			end)
 
 			-- Toggle previous & next buffers stored within Harpoon list

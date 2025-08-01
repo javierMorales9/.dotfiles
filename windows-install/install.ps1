@@ -17,20 +17,34 @@
 param(
   [string]$originalUserHome
 )
+if(-not $originalUserHome) {
+  $originalUserHome = $env:USERPROFILE
+}
 
 Write-Host "Usuario: $originalUserHome"
 
-# -------------------------- Elevación + captura del usuario ----------------------------
-if (-not $originalUserHome) {
-  $originalUserHome = $env:USERPROFILE
-  $isAdmin = ([Security.Principal.WindowsPrincipal] [Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltinRole]::Administrator)
+$binDir = Join-Path $originalUserHome "bin"
+if (-not (Test-Path $binDir)) {
+  Write-Host "[..] Creando directorio $binDir" -ForegroundColor Yellow
+  New-Item -ItemType Directory -Path $binDir | Out-Null
 
-  if (-not $isAdmin) {
-    Write-Host "[i] Re-lanzando como administrador..." -ForegroundColor Yellow
-    $args = @('-NoProfile', '-ExecutionPolicy', 'Bypass', '-File', "`"$PSCommandPath`"", '-originalUserHome', "`"$originalUserHome`"")
-    Start-Process -FilePath powershell.exe -ArgumentList $args -Verb RunAs
-    exit
+  $currentPath = [Environment]::GetEnvironmentVariable("PATH", "User")
+  if ($currentPath -notlike "*$binDir*") {
+    $newPath = "$currentPath;$binDir"
+    [Environment]::SetEnvironmentVariable("PATH", $newPath, "User")
+    Write-Host "[OK] Añadido $binDir al PATH de usuario. Reinicia la terminal para que surta efecto." -ForegroundColor Green
+  } else {
+    Write-Host "[i] $binDir ya está en el PATH de usuario." -ForegroundColor Gray
   }
+}
+
+# -------------------------- Elevación + captura del usuario ----------------------------
+$isAdmin = ([Security.Principal.WindowsPrincipal] [Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltinRole]::Administrator)
+if (-not $isAdmin) {
+  Write-Host "[i] Re-lanzando como administrador..." -ForegroundColor Yellow
+  $args = @('-NoProfile', '-ExecutionPolicy', 'Bypass', '-File', "`"$PSCommandPath`"", '-originalUserHome', "`"$originalUserHome`"")
+  Start-Process -FilePath powershell.exe -ArgumentList $args -Verb RunAs
+  exit
 }
 
 [Console]::OutputEncoding = [System.Text.Encoding]::UTF8
@@ -105,18 +119,24 @@ function Create-Link {
 Install-Chocolatey
 
 Install-PackageIfConfirmed 'wezterm'     'WezTerm'
+Install-PackageIfConfirmed 'jq'          'jq'
 Install-PackageIfConfirmed 'neovim'      'Neovim'
 Install-PackageIfConfirmed 'nodejs-lts'  'Node.js LTS'
 Install-PackageIfConfirmed 'ripgrep'     'ripgrep'
+Install-PackageIfConfirmed 'fzf'         'fzf'
 Install-PackageIfConfirmed 'llvm'        'Clang (LLVM)'
+
+$nvimConfigSrc = Join-Path $PSScriptRoot '..\nvim\.config\nvim'
+$nvimConfigDest = Join-Path $originalUserHome 'AppData\Local\nvim'
+Create-Link $nvimConfigSrc $nvimConfigDest
 
 $weztermSrc = Join-Path $PSScriptRoot '..\wezterm\.wezterm.lua'
 $weztermDest = Join-Path $originalUserHome '.wezterm.lua'
 Create-Link $weztermSrc $weztermDest
 
-$nvimConfigSrc = Join-Path $PSScriptRoot '..\nvim\.config\nvim'
-$nvimConfigDest = Join-Path $originalUserHome 'AppData\Local\nvim'
-Create-Link $nvimConfigSrc $nvimConfigDest
+$fzfSrc = Join-Path $PSScriptRoot '.\wezterm-project-launcher.ps1'
+$fzfDst = Join-Path $binDir "wezterm-launcher.ps1"
+Create-Link $fzfSrc $fzfDst
 
 Write-Host "[OK] Instalación completada." -ForegroundColor Green
 Ask-YesNo "Pincha cualquier tecla para finiquitar" -DefaultYes

@@ -15,10 +15,15 @@ vim.keymap.set("n", "<leader>gp", "<C-^>")
 
 vim.keymap.set("n", "<leader>q", "<cmd>q<Cr>")
 vim.keymap.set("n", "<A-q>", "<cmd>q<Cr>")
-vim.keymap.set("n", "<leader>w", "<cmd>w<Cr>")
 
 -- to paste without losing the buffer.
 vim.keymap.set("x", "<leader>p", [["_dP]])
+
+-- Move between windows
+vim.keymap.set("n", "<A-j>", "<C-w>j")
+vim.keymap.set("n", "<A-k>", "<C-w>k")
+vim.keymap.set("n", "<A-h>", "<C-w>h")
+vim.keymap.set("n", "<A-l>", "<C-w>l")
 
 -- To copy to the system clipboard
 vim.keymap.set({ "n", "v" }, "<leader>y", [["+y]])
@@ -60,18 +65,9 @@ vim.keymap.set("v", "<leader>x", ":lua<CR>")
 vim.keymap.set("n", "<leader>ls", function()
 	print("Don't use this!!!!")
 end)
-vim.keymap.set("n", "<A-j>", function()
-	print("Use <C-w>j")
+vim.keymap.set("n", "<leader>q", function()
+	print("Just do :q!!!")
 end)
-vim.keymap.set("n", "<A-k>", function()
-	print("Use <C-w>k")
+vim.keymap.set("n", "<leader>w", function()
+	print("Just do :w!!!")
 end)
-vim.keymap.set("n", "<A-h>", function()
-	print("Use <C-w>h")
-end)
-vim.keymap.set("n", "<A-l>", function()
-	print("Use <C-w>l")
-end)
-
-vim.keymap.set("n", "<leader>q", vim.diagnostic.setloclist, { desc = "Open diagnostic [Q]uickfix list" })
-
