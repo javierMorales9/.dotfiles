@@ -9,6 +9,14 @@ return require("packer").startup(function(use)
 	use("wbthomason/packer.nvim")
 
 	use({
+	"rose-pine/neovim",
+	as = "rose-pine",
+	config = function()
+		vim.cmd("colorscheme rose-pine")
+	end,
+	})
+
+	use({
 		"nvim-telescope/telescope.nvim",
 		tag = "0.1.2",
 		-- or                            , branch = '0.1.x',
@@ -19,16 +27,20 @@ return require("packer").startup(function(use)
 	})
 	use({ "smartpde/telescope-recent-files" })
 
+	use({ "nvim-treesitter/nvim-treesitter", { run = ":TSUpdate" } })
+	use("nvim-treesitter/playground")
+
 	use({
-		"Pocco81/auto-save.nvim",
-		config = function()
-			require("auto-save").setup({
-				callbacks = {
-					before_saving = ":Neoformat<CR>",
-				},
-			})
-		end,
+	"Pocco81/auto-save.nvim",
+	config = function()
+		require("auto-save").setup({
+			callbacks = {
+				before_saving = ":Neoformat<CR>",
+			},
+		})
+	end,
 	})
+	use("mhartington/formatter.nvim")
 
 	use({
 		"stevearc/aerial.nvim",
@@ -39,24 +51,14 @@ return require("packer").startup(function(use)
 
 	use("junegunn/gv.vim")
 	use("airblade/vim-gitgutter")
-
-	use({
-		"rose-pine/neovim",
-		as = "rose-pine",
-		config = function()
-			vim.cmd("colorscheme rose-pine")
-		end,
-	})
-
-	use({ "nvim-treesitter/nvim-treesitter", { run = ":TSUpdate" } })
-	use("nvim-treesitter/playground")
-	use("theprimeagen/harpoon")
-	use("mbbill/undotree")
 	use("tpope/vim-fugitive")
-	use("mhartington/formatter.nvim")
-	use("github/copilot.vim")
+	use("mbbill/undotree")
+	
 	use("nvim-tree/nvim-tree.lua")
 	use("nvim-tree/nvim-web-devicons")
+	use("theprimeagen/harpoon")
+
+	use("github/copilot.vim")
 
 	use({
 		"VonHeikemen/lsp-zero.nvim",

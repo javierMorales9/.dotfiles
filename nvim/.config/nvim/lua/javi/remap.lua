@@ -1,5 +1,4 @@
 vim.g.mapleader = " "
---vim.keymap.set("n", "<leader>ls", vim.cmd.Ex)
 
 -- to move the selected lines (Classic Alt up Alt down)
 vim.keymap.set("v", "J", ":m '>+1<CR>gv=gv")
@@ -10,12 +9,6 @@ vim.keymap.set("n", "<C-d>", "<C-d>zz")
 vim.keymap.set("n", "<C-u>", "<C-u>zz")
 vim.keymap.set("n", "n", "nzzzv")
 vim.keymap.set("n", "N", "Nzzzv")
-
--- remap split movement
-vim.keymap.set("n", "<A-j>", "<C-w>j")
-vim.keymap.set("n", "<A-k>", "<C-w>k")
-vim.keymap.set("n", "<A-h>", "<C-w>h")
-vim.keymap.set("n", "<A-l>", "<C-w>l")
 
 -- go to the previous file
 vim.keymap.set("n", "<leader>gp", "<C-^>")
@@ -46,9 +39,39 @@ vim.keymap.set("n", "<leader>j", "<cmd>lprev<CR>zz")
 vim.keymap.set("n", "<leader>s", [[:%s/\<<C-r><C-w>\>/<C-r><C-w>/gI<Left><Left><Left>]])
 vim.keymap.set("n", "<leader>x", "<cmd>!chmod +x %<CR>", { silent = true })
 
-vim.keymap.set("n", "<leader>vpp", "<cmd>e ~/.dotfiles/nvim/.config/nvim/lua/theprimeagen/packer.lua<CR>");
-vim.keymap.set("n", "<leader>mr", "<cmd>CellularAutomaton make_it_rain<CR>");
+-- Diagnostics
+vim.keymap.set("n", "[d", function()
+	vim.diagnostic.goto_next()
+end, opts)
+vim.keymap.set("n", "]d", function()
+	vim.diagnostic.goto_prev()
+end, opts)
+vim.keymap.set("n", "<leader>e", vim.diagnostic.open_float, { desc = "Show diagnostic [E] error messages" })
+vim.keymap.set("n", "<leader>vd", function()
+	vim.diagnostic.open_float()
+end, opts)
 
-vim.keymap.set("n", "<leader><leader>", function()
-  vim.cmd("so")
+-- Lua executions
+vim.keymap.set("n", "<leader><leader>x", "<cmd>source %<CR>")
+vim.keymap.set("n", "<leader>x", ":lua<CR>")
+vim.keymap.set("v", "<leader>x", ":lua<CR>")
+
+-- Commands I want to stop using
+vim.keymap.set("n", "<leader>ls", function()
+	print("Don't use this!!!!")
 end)
+vim.keymap.set("n", "<A-j>", function()
+	print("Use <C-w>j")
+end)
+vim.keymap.set("n", "<A-k>", function()
+	print("Use <C-w>k")
+end)
+vim.keymap.set("n", "<A-h>", function()
+	print("Use <C-w>h")
+end)
+vim.keymap.set("n", "<A-l>", function()
+	print("Use <C-w>l")
+end)
+
+vim.keymap.set("n", "<leader>q", vim.diagnostic.setloclist, { desc = "Open diagnostic [Q]uickfix list" })
+

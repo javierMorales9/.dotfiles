@@ -1,95 +1,122 @@
 # =============================
-# install.ps1  –  Fresh Windows bootstrap
+# install.ps1  –  Bootstrap de entorno terminal/editor
 # =============================
-<####################################################################
-    This script installs your terminal & editor stack on a brand‑new
-    Windows box.  It will...
-        • Ensure it is running as Administrator (auto‑relaunch if not)
-        • Install / upgrade Chocolatey
-        • Optionally install  –  WezTerm ▸ Neovim ▸ Node.js (LTS) ▸ ripgrep
-        • Create a symbolic link  $HOME\.wezterm.lua → <repo>\wezterm\.wezterm.lua
-    How to run:
-        PS> Set-ExecutionPolicy Bypass -Scope Process -Force
-        PS> ./install.ps1
-####################################################################>
+<#
+  Este script:
+    • Eleva permisos si es necesario.
+    • Instala Chocolatey si no está.
+    • Instala opcionalmente: WezTerm, Neovim, Node.js LTS, ripgrep.
+    • Crea symlink: $HOME\.wezterm.lua -> <repo>\wezterm\.wezterm.lua
 
-Param()
+  Usa $originalUserHome para escribir en el perfil del usuario original (no admin).
 
-#-----------------------------  Helper: Elevate  -----------------------------#
-function Ensure‑Admin {
-  $isAdmin = ([Security.Principal.WindowsPrincipal] [Security.Principal.WindowsIdentity]::GetCurrent())
-               .IsInRole([Security.Principal.WindowsBuiltinRole]::Administrator)
+  Uso:
+    PS> ./install.ps1
+#>
+
+param(
+  [string]$originalUserHome
+)
+
+Write-Host "Usuario: $originalUserHome"
+
+# -------------------------- Elevación + captura del usuario ----------------------------
+if (-not $originalUserHome) {
+  $originalUserHome = $env:USERPROFILE
+  $isAdmin = ([Security.Principal.WindowsPrincipal] [Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltinRole]::Administrator)
+
   if (-not $isAdmin) {
-    Write‑Host "[i] Re‑launching with elevated privileges …" -Foreground Yellow
-    Start‑Process powershell "-NoProfile -ExecutionPolicy Bypass -File `\"$PSCommandPath`\"" -Verb RunAs
+    Write-Host "[i] Re-lanzando como administrador..." -ForegroundColor Yellow
+    $args = @('-NoProfile', '-ExecutionPolicy', 'Bypass', '-File', "`"$PSCommandPath`"", '-originalUserHome', "`"$originalUserHome`"")
+    Start-Process -FilePath powershell.exe -ArgumentList $args -Verb RunAs
     exit
   }
 }
-Ensure‑Admin
 
-#-----------------------------  Helper: Ask‑YesNo  ---------------------------#
-function Ask‑YesNo ($Question, [switch]$DefaultYes) {
-  $default = $DefaultYes ? "Y" : "N"
-  $answer  = Read‑Host "$Question [$default/y/n]"
+[Console]::OutputEncoding = [System.Text.Encoding]::UTF8
+
+# ----------------------------  Helper: Pregunta  ---------------------------
+function Ask-YesNo {
+  param(
+    [Parameter(Mandatory = $true)][string]$Question,
+    [switch]$DefaultYes
+  )
+  $default = if ($DefaultYes) { "Y" } else { "N" }
+  $answer  = Read-Host "$Question [$default/y/n]"
   if ([string]::IsNullOrWhiteSpace($answer)) { $answer = $default }
-  return $answer.Trim().Substring(0,1).ToUpper() -eq "Y"
+  return ($answer.Trim().Substring(0,1).ToUpper() -eq "Y")
 }
 
-#-----------------------------  Chocolatey  ---------------------------------#
-function Install‑Chocolatey {
-  if (Get‑Command choco -ErrorAction SilentlyContinue) {
-    Write‑Host "[✓] Chocolatey already installed." ‑Foreground Green
+# ----------------------------  Chocolatey  ----------------------------------
+function Install-Chocolatey {
+  if (Get-Command choco -ErrorAction SilentlyContinue) {
+    Write-Host "[OK] Chocolatey ya está instalado." -ForegroundColor Green
     return
   }
-  if (-not (Ask‑YesNo "Chocolatey not found. Install now?" -DefaultYes)) { return }
-  Write‑Host "[→] Installing Chocolatey …" -Foreground Cyan
-  Set‑ExecutionPolicy Bypass -Scope Process -Force
+
+  Write-Host "[..] Instalando Chocolatey..." -ForegroundColor Yellow
+  Set-ExecutionPolicy Bypass -Scope Process -Force
   [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
-  Invoke‑Expression ((New‑Object System.Net.WebClient).DownloadString('https://community.chocolatey.org/install.ps1'))
-  Write‑Host "[✓] Chocolatey installed." -Foreground Green
-}
-Install‑Chocolatey
+  Invoke-Expression (
+    (New-Object Net.WebClient).DownloadString('https://community.chocolatey.org/install.ps1')
+  )
 
-#-----------------------------  Packages  ------------------------------------#
-$Packages = @(
-  @{Name='wezterm';        Friendly='WezTerm terminal';    Src='choco' },
-  @{Name='neovim';         Friendly='Neovim';              Src='choco' },
-  @{Name='nodejs-lts';     Friendly='Node.js (LTS)';       Src='choco' },
-  @{Name='ripgrep';        Friendly='ripgrep';             Src='choco' }
-)
-
-function Install‑PackageIfWanted ($pkg) {
-  $name  = $pkg.Name
-  $label = $pkg.Friendly
-  $already = choco list --local-only --exact $name | Select‑String "^$name "
-  if ($already) {
-    Write‑Host "[✓] $label already present." -Foreground Green
-    return
-  }
-  if (-not (Ask‑YesNo "Install $label?" -DefaultYes)) { return }
-  Write‑Host "[→] Installing $label …" -Foreground Cyan
-  choco install $name -y --ignore-checksums
-}
-
-foreach ($p in $Packages) { Install‑PackageIfWanted $p }
-
-#-----------------------------  Symlink .wezterm.lua  ------------------------#
-$RepoRoot   = Split‑Path -Parent $PSCommandPath   # assumes script lives inside the repo
-$TargetFile = Join‑Path $RepoRoot "wezterm\.wezterm.lua"
-$LinkFile   = Join‑Path $HOME    ".wezterm.lua"
-
-if (-not (Test‑Path $TargetFile)) {
-  Write‑Host "[!] Expected config $TargetFile not found. Skipping symlink." -Foreground Yellow
-} else {
-  if (Test‑Path $LinkFile) {
-    Write‑Host "[i] $LinkFile already exists → skipping link creation." -Foreground Yellow
+  if (Get-Command choco -ErrorAction SilentlyContinue) {
+    Write-Host "[OK] Chocolatey instalado correctamente." -ForegroundColor Green
   } else {
-    if (Ask‑YesNo "Create symlink $LinkFile → $TargetFile?" -DefaultYes) {
-      Write‑Host "[→] Creating symlink …" -Foreground Cyan
-      cmd /c mklink "$LinkFile" "$TargetFile"  | Out‑Null
-      Write‑Host "[✓] Symlink created." -Foreground Green
-    }
+    Write-Host "[ERROR] No se pudo instalar Chocolatey." -ForegroundColor Red
+    throw "Fallo al instalar Chocolatey."
   }
 }
 
-Write‑Host "\n===  Setup complete!  ===" -Foreground Green
+# ----------------------------  Instalaciones opcionales  ---------------------------
+function Install-PackageIfConfirmed {
+  param(
+    [Parameter(Mandatory = $true)][string]$PackageName,
+    [Parameter(Mandatory = $true)][string]$DisplayName
+  )
+
+  Write-Host "¿Quieres instalar $DisplayName"
+  if (Ask-YesNo "?" -DefaultYes) {
+    Write-Host "[..] Instalando $DisplayName..." -ForegroundColor Yellow
+    choco install $PackageName -y
+  } else {
+    Write-Host "[i] Saltando $DisplayName." -ForegroundColor DarkGray
+  }
+}
+
+# ----------------------------  Symlink wezterm.lua -------------------------
+function Create-Link {
+  param(
+    [Parameter(Mandatory = $true)][string]$source,
+    [Parameter(Mandatory = $true)][string]$target
+  )
+
+  if (Test-Path $target) {
+    Write-Host "[i] Ya existe $target. Eliminando..." -ForegroundColor DarkYellow
+    Remove-Item $target -Force
+  }
+
+  Write-Host "[..] Creando symlink: $target -> $source" -ForegroundColor Yellow
+  New-Item -ItemType SymbolicLink -Path $target -Target $source | Out-Null
+}
+
+# ----------------------------  MAIN  ----------------------------------------
+Install-Chocolatey
+
+Install-PackageIfConfirmed 'wezterm'     'WezTerm'
+Install-PackageIfConfirmed 'neovim'      'Neovim'
+Install-PackageIfConfirmed 'nodejs-lts'  'Node.js LTS'
+Install-PackageIfConfirmed 'ripgrep'     'ripgrep'
+Install-PackageIfConfirmed 'llvm'        'Clang (LLVM)'
+
+$weztermSrc = Join-Path $PSScriptRoot '..\wezterm\.wezterm.lua'
+$weztermDest = Join-Path $originalUserHome '.wezterm.lua'
+Create-Link $weztermSrc $weztermDest
+
+$nvimConfigSrc = Join-Path $PSScriptRoot '..\nvim\.config\nvim'
+$nvimConfigDest = Join-Path $originalUserHome 'AppData\Local\nvim'
+Create-Link $nvimConfigSrc $nvimConfigDest
+
+Write-Host "[OK] Instalación completada." -ForegroundColor Green
+Ask-YesNo "Pincha cualquier tecla para finiquitar" -DefaultYes
