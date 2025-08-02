@@ -20,14 +20,15 @@ param(
 # -------------------------- Capturar usuario antes de escalar ----------------------------
 if (-not $originalUserHome) {
   $originalUserHome = $env:USERPROFILE
-  $isAdmin = ([Security.Principal.WindowsPrincipal] [Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltinRole]::Administrator)
+}
 
-  if (-not $isAdmin) {
-    Write-Host "[i] Re-lanzando como administrador..." -ForegroundColor Yellow
-    $args = @('-NoProfile', '-ExecutionPolicy', 'Bypass', '-File', "`"$PSCommandPath`"", '-originalUserHome', "`"$originalUserHome`"")
-    Start-Process -FilePath powershell.exe -ArgumentList $args -Verb RunAs
-    exit
-  }
+$isAdmin = ([Security.Principal.WindowsPrincipal] [Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltinRole]::Administrator)
+
+if (-not $isAdmin) {
+  Write-Host "[i] Re-lanzando como administrador..." -ForegroundColor Yellow
+  $args = @('-NoProfile', '-ExecutionPolicy', 'Bypass', '-File', "`"$PSCommandPath`"", '-originalUserHome', "`"$originalUserHome`"")
+  Start-Process -FilePath powershell.exe -ArgumentList $args -Verb RunAs
+  exit
 }
 
 [Console]::OutputEncoding = [System.Text.Encoding]::UTF8
@@ -163,9 +164,6 @@ Remove-TargetIfDirOrSymlink -target (Join-Path $originalUserHome 'AppData\Local\
 Remove-TargetIfDirOrSymlink -target (Join-Path $originalUserHome 'AppData\Local\nvim-data')
 Remove-TargetIfDirOrSymlink -target (Join-Path $originalUserHome 'bin')
 Remove-Chocolatey
-
-Write-Host ""
-Write-Host "[OK] Desinstalación completada." -ForegroundColor Green
 
 Write-Host "[OK] Desinstlación completada." -ForegroundColor Green
 Ask-YesNo "Pincha cualquier tecla para finiquitar" -DefaultYes
