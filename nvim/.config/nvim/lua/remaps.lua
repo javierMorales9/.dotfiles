@@ -43,6 +43,11 @@ vim.keymap.set("n", "<leader>j", "<cmd>lprev<CR>zz")
 vim.keymap.set("n", "<leader>s", [[:%s/\<<C-r><C-w>\>/<C-r><C-w>/gI<Left><Left><Left>]])
 vim.keymap.set("n", "<leader>x", "<cmd>!chmod +x %<CR>", { silent = true })
 
+-- Linux only
+if vim.loop.os_uname().sysname == "Linux" then
+	vim.keymap.set("n", "<C-f>", "<cmd>silent !tmux neww tmux-sessionizer<CR>")
+end
+
 -- Diagnostics
 vim.keymap.set("n", "[d", function()
 	vim.diagnostic.goto_next()
