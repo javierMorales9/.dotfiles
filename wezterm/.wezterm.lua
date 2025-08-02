@@ -109,8 +109,7 @@ end
 -- Split / close panes
 map("LEADER", "d", act.SplitHorizontal({ domain = "CurrentPaneDomain" }))
 map("LEADER", "a", act.SplitVertical({ domain = "CurrentPaneDomain" }))
-map("CTRL", "d", act.CloseCurrentPane({ confirm = true }))
-map("CTRL|SHIFT", "d", act.QuitApplication)
+map("LEADER", "D", act.QuitApplication)
 
 -- Move focus (vim‑style H/J/K/L)
 map("LEADER", "H", act.ActivatePaneDirection("Left"))
@@ -183,6 +182,8 @@ end)
 wezterm.on("format-window-title", function()
 	return "🗂  " .. (wezterm.mux.get_active_workspace() or "")
 end)
+
+config.font_size = 15
 
 config.colors = {
 	tab_bar = {

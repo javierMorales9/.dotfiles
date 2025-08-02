@@ -124,6 +124,7 @@ Install-PackageIfConfirmed 'neovim'      'Neovim'
 Install-PackageIfConfirmed 'nodejs-lts'  'Node.js LTS'
 Install-PackageIfConfirmed 'ripgrep'     'ripgrep'
 Install-PackageIfConfirmed 'fzf'         'fzf'
+Install-PackageIfConfirmed 'psql'        'psql'
 Install-PackageIfConfirmed 'llvm'        'Clang (LLVM)'
 
 $nvimConfigSrc = Join-Path $PSScriptRoot '..\nvim\.config\nvim'

@@ -155,11 +155,13 @@ Uninstall-Package 'neovim'      'Neovim'
 Uninstall-Package 'nodejs-lts'  'Node.js LTS'
 Uninstall-Package 'ripgrep'     'ripgrep'
 Uninstall-Package 'fzf'         'fzf'
+Uninstall-Package 'psql'         'psql'
 Uninstall-Package 'llvm'        'Clang (LLVM)'
 
 Remove-TargetIfDirOrSymlink -target (Join-Path $originalUserHome '.wezterm.lua')
 Remove-TargetIfDirOrSymlink -target (Join-Path $originalUserHome 'AppData\Local\nvim')
 Remove-TargetIfDirOrSymlink -target (Join-Path $originalUserHome 'AppData\Local\nvim-data')
+Remove-TargetIfDirOrSymlink -target (Join-Path $originalUserHome 'bin')
 Remove-Chocolatey
 
 Write-Host ""

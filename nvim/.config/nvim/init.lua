@@ -1,5 +1,5 @@
-require("lazy_config")
 require("remaps")
+require("lazy_config")
 
 vim.opt.nu = true
 vim.opt.relativenumber = true
@@ -40,3 +40,7 @@ vim.o.cursorline = true
 vim.schedule(function()
 	vim.o.clipboard = "unnamedplus"
 end)
+
+-- To deactivate all the nvim SQL commands that start with <C-c>
+-- and break the exit insert mode key binding
+vim.g.omni_sql_no_default_maps = 1
