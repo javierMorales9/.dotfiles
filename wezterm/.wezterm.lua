@@ -15,6 +15,7 @@ as living documentation.
 local wezterm = require("wezterm")
 local act = wezterm.action
 local config = wezterm.config_builder()
+local mux = wezterm.mux
 
 -- ##########################################################################
 -- 0.  BASIC PREFERENCES  ───────────────────────────────────────────────────
@@ -26,6 +27,12 @@ config.keys = {} -- ensure fresh key table
 
 config.default_workspace = ".dotfiles" -- **NEW**: spawn into this workspace
 config.default_cwd = wezterm.home_dir .. "/.dotfiles" -- open first tab in ~/.dotfiles
+
+wezterm.on("gui-startup", function(window)
+	local tab, pane, window = mux.spawn_window(cmd or {})
+	local gui_window = window:gui_window()
+	gui_window:perform_action(wezterm.action.ToggleFullScreen, pane)
+end)
 
 -- ##########################################################################
 -- 1.  PROJECT LAUNCHER (WORKSPACE SELECTOR)  ───────────────────────────────
