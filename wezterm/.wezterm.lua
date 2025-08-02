@@ -70,7 +70,7 @@ end
 
 -- Leader f  → open launcher
 config.keys[#config.keys + 1] = {
-	mods = "LEADER",
+	mods = "CTRL",
 	key = "f",
 	action = act.InputSelector({
 		title = "Open Project Workspace",
@@ -116,9 +116,6 @@ map("LEADER", "H", act.ActivatePaneDirection("Left"))
 map("LEADER", "J", act.ActivatePaneDirection("Down"))
 map("LEADER", "K", act.ActivatePaneDirection("Up"))
 map("LEADER", "L", act.ActivatePaneDirection("Right"))
-
--- Quick launcher for PE scripts from the current pane (example)
-map("CTRL", "f", act.SendString("wezterm-launcher\r"))
 
 -- ##########################################################################
 -- 3.  QUICK‑ACCESS WORKSPACES (OPTIONAL SHORTCUTS)  ────────────────────────
@@ -167,13 +164,6 @@ config.launch_menu = {
 -- Here we leverage that to implement an *out‑of‑band workspace switch*:
 -- a shell script (or external process) can tell WezTerm, "please activate
 -- workspace X" without needing a dedicated CLI flag.
-
-wezterm.on("user-var-changed", function(window, pane, name, value)
-	if name == "WEZ_SWITCH_WS" and value and #value > 0 then
-		-- The action is deferred to WezTerm; scripts only emit the signal.
-		window:perform_action(act.SwitchToWorkspace({ name = value }), pane)
-	end
-end)
 
 -- ##########################################################################
 -- 6.  APPEARANCE  ──────────────────────────────────────────────────────────

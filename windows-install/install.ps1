@@ -135,9 +135,11 @@ $weztermSrc = Join-Path $PSScriptRoot '..\wezterm\.wezterm.lua'
 $weztermDest = Join-Path $originalUserHome '.wezterm.lua'
 Create-Link $weztermSrc $weztermDest
 
-$fzfSrc = Join-Path $PSScriptRoot '.\wezterm-project-launcher.ps1'
-$fzfDst = Join-Path $binDir "wezterm-launcher.ps1"
-Create-Link $fzfSrc $fzfDst
+
+#-------------------- Scripts -----------------------------------
+$exSrc = Join-Path $PSScriptRoot '.\example-script.ps1'
+$exDst = Join-Path $binDir "example-script.ps1"
+Create-Link $exSrc $exDst
 
 Write-Host "[OK] Instalación completada." -ForegroundColor Green
 Ask-YesNo "Pincha cualquier tecla para finiquitar" -DefaultYes

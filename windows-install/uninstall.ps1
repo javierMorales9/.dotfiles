@@ -3,7 +3,7 @@
 # =============================
 <#
   Este script desinstala:
-    • Paquetes instalados con Chocolatey (WezTerm, Neovim, Node.js LTS, ripgrep)
+    • Paquetes instalados con Chocolatey (WezTerm, Neovim, Node.js LTS, ripgrep, ...)
     • Chocolatey clásico o portable
     • Symlink .wezterm.lua del perfil original (aunque se eleve a admin)
 
