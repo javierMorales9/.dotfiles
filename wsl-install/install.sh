@@ -51,7 +51,7 @@ sudo apt-get install -y \
 if ! command -v starship >/dev/null 2>&1; then
   echo "[*] Instalando starship en ${LOCAL_BIN}..."
   mkdir -p "$LOCAL_BIN"
-  curl -fsSL https://starship.rs/install.sh | bash -s -- -y -b "$LOCAL_BIN"
+  curl -fsSL https://starship.rs/install.sh | sh -s -- -y -b "$LOCAL_BIN"
 else
   echo "[=] starship ya instalado."
 fi
