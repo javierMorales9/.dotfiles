@@ -239,6 +239,7 @@ require("lazy").setup({
 				-- But for many setups, the LSP (`ts_ls`) will work just fine
 				--
 				ts_ls = {},
+				pyright = {},
 				lua_ls = {
 					-- cmd = { ... },
 					-- filetypes = { ... },
@@ -326,11 +327,10 @@ require("lazy").setup({
 			end,
 			formatters_by_ft = {
 				lua = { "stylua" },
-				javascript = { "prettierd", "prettier", stop_after_first = true },
+				python = { "black" },
 				-- Conform can also run multiple formatters sequentially
-				-- python = { "isort", "black" },
-				--
 				-- You can use 'stop_after_first' to run the first available formatter from the list
+				javascript = { "prettierd", "prettier", stop_after_first = true },
 			},
 		},
 	},
@@ -516,6 +516,7 @@ require("lazy").setup({
 				"query",
 				"vim",
 				"vimdoc",
+				"python",
 			},
 			-- Autoinstall languages that are not installed
 			auto_install = true,
