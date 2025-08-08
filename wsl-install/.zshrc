@@ -4,6 +4,7 @@ export PATH="${HOME}/personal/sumneko/bin:$PATH"
 export PATH="/usr/local/go/bin:$PATH"
 export PATH="${HOME}/go/bin:$PATH"
 export PATH="$FLYCTL_INSTALL/bin:$PATH"
+export PATH="$FLYCTL_INSTALL/bin:$PATH"
 alias luamake=/home/javi/personal/sumneko/3rd/luamake/luamake
 
 # pnpm
@@ -33,6 +34,7 @@ source /usr/share/doc/fzf/examples/key-bindings.zsh
 source /usr/share/doc/fzf/examples/completion.zsh
 
 path+=(/home/javi/bin:/home/javi/.local/bin:/home/javi/.local/share/ponyup/bin)
+path=(/usr/lib/postgresql/16/bin $path)
 
 [[ -n "$WT_SESSION" ]] && {
   chpwd() {
@@ -92,5 +94,11 @@ else
 fi
 unset __conda_setup
 # <<< conda initialize <<<
+
+# NVM (Node Version Manager)
+export NVM_DIR="$HOME/.nvm"
+[ -s "$NVM_DIR/nvm.sh" ] && . "$NVM_DIR/nvm.sh"  # Carga nvm
+[ -s "$NVM_DIR/bash_completion" ] && . "$NVM_DIR/bash_completion"  # Auto-completado opcional
+
 
 export PATH="$HOME/.local/bin:$PATH"

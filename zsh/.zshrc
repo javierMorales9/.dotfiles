@@ -5,6 +5,8 @@ export LS_COLORS="rs=0:di=01;34:ln=01;36:mh=00:pi=40;33:so=01;35:do=01;35:bd=40;
 export ZSH="$HOME/.oh-my-zsh"
 export XDG_CONFIG_HOME="$HOME/.config"
 
+export FLYCTL_INSTALL="/home/javi/.fly"
+
 plugins=(
   git
   zsh-syntax-highlighting
@@ -18,8 +20,6 @@ plugins=(
 source $ZSH/oh-my-zsh.sh
 source /usr/share/doc/fzf/examples/key-bindings.zsh
 source /usr/share/doc/fzf/examples/completion.zsh
-
-path+=(/home/javi/bin:/home/javi/.local/bin:/home/javi/.local/share/ponyup/bin)
 
 [[ -n "$WT_SESSION" ]] && {
   chpwd() {
@@ -61,17 +61,21 @@ alias pv='pipenv'
 
 alias stdocker=sudo service docker start
 
+alias luamake=/home/javi/personal/sumneko/3rd/luamake/luamake
+
 bindkey -s ^f "tmux-sessionizer\n"
 
-export FLYCTL_INSTALL="/home/javi/.fly"
+path+=(
+  $HOME/bin
+  $HOME/.local/bin
+  $HOME/.local/share/ponyup/bin
+  $HOME/.pulumi/bin
+  $FLYCTL_INSTALL/bin
+  /usr/local/go/bin
+  $HOME/go/bin
+)
 
-export PATH=$PATH:$HOME/.pulumi/bin
-export PATH="${HOME}/.local/bin:$PATH"
-export PATH="${HOME}/personal/sumneko/bin:$PATH"
-export PATH="/usr/local/go/bin:$PATH"
-export PATH="${HOME}/go/bin:$PATH"
-export PATH="$FLYCTL_INSTALL/bin:$PATH"
-alias luamake=/home/javi/personal/sumneko/3rd/luamake/luamake
+path=(/usr/lib/postgresql/16/bin $path)
 
 # pnpm
 export PNPM_HOME="/home/javi/.local/share/pnpm"
@@ -80,23 +84,3 @@ case ":$PATH:" in
   *) export PATH="$PNPM_HOME:$PATH" ;;
 esac
 # pnpm end
-
-# >>> conda initialize >>>
-# !! Contents within this block are managed by 'conda init' !!
-__conda_setup="$('/home/javi/miniconda3/bin/conda' 'shell.zsh' 'hook' 2> /dev/null)"
-if [ $? -eq 0 ]; then
-    eval "$__conda_setup"
-else
-    if [ -f "/home/javi/miniconda3/etc/profile.d/conda.sh" ]; then
-        . "/home/javi/miniconda3/etc/profile.d/conda.sh"
-    else
-        export PATH="/home/javi/miniconda3/bin:$PATH"
-    fi
-fi
-unset __conda_setup
-# <<< conda initialize <<<
-
-
-# Rvenb. For Ruby versions
-export PATH="$HOME/.rbenv/bin:$PATH"
-eval "$(rbenv init -)"
