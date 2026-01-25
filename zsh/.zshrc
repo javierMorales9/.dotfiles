@@ -84,3 +84,6 @@ case ":$PATH:" in
   *) export PATH="$PNPM_HOME:$PATH" ;;
 esac
 # pnpm end
+
+#Postgres
+export PGDATA="$(psql -U postgres -c 'SHOW data_directory' --tuples-only | sed 's/^[ \t]*//')"

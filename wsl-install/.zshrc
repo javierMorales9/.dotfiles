@@ -102,3 +102,6 @@ export NVM_DIR="$HOME/.nvm"
 
 
 export PATH="$HOME/.local/bin:$PATH"
+
+#Postgres
+export PGDATA="$(psql -U postgres -c 'SHOW data_directory' --tuples-only | sed 's/^[ \t]*//')"
