@@ -15,7 +15,6 @@ if ! command -v fzf >/dev/null 2>&1; then
 fi
 
 repo_root="$(git rev-parse --show-toplevel 2>/dev/null || pwd -P)"
-repo_name="$(basename "$repo_root")"
 
 article_dir="$(
   find "$ARTICLES_ROOT" -mindepth 1 -maxdepth 1 -type d 2>/dev/null \
@@ -27,7 +26,7 @@ if [[ -z "${article_dir:-}" ]]; then
   exit 0
 fi
 
-target="$article_dir/$repo_name"
+target="$article_dir/ref"
 
 if [[ -L "$target" ]]; then
   if [[ "$(readlink -f "$target")" == "$(readlink -f "$repo_root")" ]]; then
