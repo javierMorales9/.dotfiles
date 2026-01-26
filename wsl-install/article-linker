@@ -1,0 +1,49 @@
+#!/usr/bin/env bash
+
+set -euo pipefail
+
+ARTICLES_ROOT="${ARTICLES_ROOT:-$HOME/personal/articles}"
+
+if [[ ! -d "$ARTICLES_ROOT" ]]; then
+  echo "Articles folder not found: $ARTICLES_ROOT" >&2
+  exit 1
+fi
+
+if ! command -v fzf >/dev/null 2>&1; then
+  echo "fzf is required but not found in PATH." >&2
+  exit 1
+fi
+
+repo_root="$(git rev-parse --show-toplevel 2>/dev/null || pwd -P)"
+repo_name="$(basename "$repo_root")"
+
+article_dir="$(
+  find "$ARTICLES_ROOT" -mindepth 1 -maxdepth 1 -type d 2>/dev/null \
+    | sort \
+    | fzf --prompt="Article> " --height=40% --reverse
+)"
+
+if [[ -z "${article_dir:-}" ]]; then
+  exit 0
+fi
+
+target="$article_dir/$repo_name"
+
+if [[ -L "$target" ]]; then
+  if [[ "$(readlink -f "$target")" == "$(readlink -f "$repo_root")" ]]; then
+    echo "Symlink already correct: $target -> $repo_root"
+    exit 0
+  fi
+  read -r -p "Symlink exists at $target. Replace? [y/N] " answer
+  if [[ ! "$answer" =~ ^[Yy]$ ]]; then
+    echo "Aborted."
+    exit 1
+  fi
+  rm -f -- "$target"
+elif [[ -e "$target" ]]; then
+  echo "Target exists and is not a symlink: $target" >&2
+  exit 1
+fi
+
+ln -s "$repo_root" "$target"
+echo "Created symlink: $target -> $repo_root"
