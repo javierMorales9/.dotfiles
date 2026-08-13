@@ -23,7 +23,7 @@ Opciones:
 
 Esta uninstall revierte lo instalado por el script de install:
 - Neovim (tarball en /opt/nvim-<vers>, symlink /opt/nvim y /usr/local/bin/nvim)
-- Symlinks: ~/.zshrc, ~/.tmux.conf, ~/.config/nvim, ~/.local/bin/tmux-cht.sh, ~/.local/bin/tmux-sessionizer
+- Symlinks: ~/.zshrc, ~/.tmux.conf, ~/.config/nvim, ~/.local/bin/tmux-cht.sh, ~/.local/bin/tmux-sessionizer, ~/.local/bin/article-linker, ~/.local/bin/wt-detach
 - nvm + Node, pyenv + Python, oh-my-zsh, starship (+ ~/.config/starship.toml)
 - Alias fd -> fdfind en ~/.local/bin/fd
 - Línea PATH añadida al final de ~/.zshrc: export PATH="$HOME/.local/bin:$PATH"
@@ -78,6 +78,8 @@ unlink_if_symlink "${HOME}/.tmux.conf"
 unlink_if_symlink "${NVIM_DST}"
 unlink_if_symlink "${LOCAL_BIN}/tmux-cht.sh"
 unlink_if_symlink "${LOCAL_BIN}/tmux-sessionizer"
+unlink_if_symlink "${LOCAL_BIN}/article-linker"
+unlink_if_symlink "${LOCAL_BIN}/wt-detach"
 
 # alias 'fd' -> 'fdfind' que crea el install
 if [ -L "${LOCAL_BIN}/fd" ]; then

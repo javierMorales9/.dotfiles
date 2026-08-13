@@ -19,6 +19,7 @@ TMUXCONF_SRC="${SCRIPT_DIR}/.tmux.conf"
 TMUX_CHT_SRC="${SCRIPT_DIR}/tmux-cht.sh"
 TMUX_SESS_SRC="${SCRIPT_DIR}/tmux-sessionizer"
 ARTICLE_LINKER_SRC="${SCRIPT_DIR}/article-linker"
+WT_DETACH_SRC="${SCRIPT_DIR}/wt-detach.sh"
 
 NVIM_TARBALL_URL="https://github.com/neovim/neovim/releases/latest/download/nvim-linux-x86_64.tar.gz"
 NVIM_OPT_DIR="/opt"
@@ -198,9 +199,11 @@ mkdir -p "$LOCAL_BIN"
 link "$TMUX_CHT_SRC"  "${LOCAL_BIN}/tmux-cht.sh"
 link "$TMUX_SESS_SRC" "${LOCAL_BIN}/tmux-sessionizer"
 link "$ARTICLE_LINKER_SRC" "${LOCAL_BIN}/article-linker"
+link "$WT_DETACH_SRC" "${LOCAL_BIN}/wt-detach"
 ensure_exec "${LOCAL_BIN}/tmux-cht.sh"
 ensure_exec "${LOCAL_BIN}/tmux-sessionizer"
 ensure_exec "${LOCAL_BIN}/article-linker"
+ensure_exec "${LOCAL_BIN}/wt-detach"
 
 # ========= Asegura PATHs útiles =========
 # /usr/local/bin suele preceder a /usr/bin por defecto; añadimos ~/.local/bin si falta

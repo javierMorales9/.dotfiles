@@ -4,44 +4,187 @@ set -euo pipefail
 
 ARTICLES_ROOT="${ARTICLES_ROOT:-$HOME/personal/articles}"
 
-if [[ ! -d "$ARTICLES_ROOT" ]]; then
-  echo "Articles folder not found: $ARTICLES_ROOT" >&2
-  exit 1
-fi
+usage() {
+  cat <<USAGE
+Usage:
+  article-linker                 # pick article via fzf; link current repo
+  article-linker <repo>          # pick article via fzf; link <repo>
+  article-linker <repo> <article># link <repo> into <article>/ref
+  article-linker <article>       # link current repo into <article>/ref (when <article> is under \$ARTICLES_ROOT)
 
-if ! command -v fzf >/dev/null 2>&1; then
-  echo "fzf is required but not found in PATH." >&2
-  exit 1
-fi
+Options:
+  -f, --force            Replace existing symlink without prompting
+  -h, --help             Show help
 
-repo_root="$(git rev-parse --show-toplevel 2>/dev/null || pwd -P)"
+Notes:
+  - <repo> can be a git repo path or any directory (we link its real path)
+  - <article> can be an absolute path, a path relative to cwd, or a folder name under \$ARTICLES_ROOT
+USAGE
+}
 
-article_dir="$(
-  find "$ARTICLES_ROOT" -mindepth 1 -maxdepth 1 -type d 2>/dev/null \
-    | sort \
-    | fzf --prompt="Article> " --height=40% --reverse
-)"
+die() {
+  echo "$1" >&2
+  exit "${2:-1}"
+}
 
-if [[ -z "${article_dir:-}" ]]; then
-  exit 0
-fi
+need_cmd() {
+  command -v "$1" >/dev/null 2>&1 || die "$1 is required but not found in PATH."
+}
+
+realpath_compat() {
+  if command -v realpath >/dev/null 2>&1; then
+    realpath "$1"
+  elif command -v python3 >/dev/null 2>&1; then
+    python3 -c 'import os,sys; print(os.path.realpath(sys.argv[1]))' "$1"
+  else
+    # last resort: rely on physical pwd; may not resolve symlinks fully
+    (cd "$1" 2>/dev/null && pwd -P) || return 1
+  fi
+}
+
+is_under_articles_root() {
+  local candidate resolved_root resolved_candidate
+  candidate="$1"
+  resolved_root="$(realpath_compat "$ARTICLES_ROOT")"
+  resolved_candidate="$(realpath_compat "$candidate")" || return 1
+  [[ "$resolved_candidate" == "$resolved_root"/* ]]
+}
+
+select_article_dir() {
+  need_cmd fzf
+
+  local selected
+  selected="$(
+    find "$ARTICLES_ROOT" -mindepth 1 -maxdepth 1 -type d 2>/dev/null \
+      | sort \
+      | fzf --prompt="Article> " --height=40% --reverse
+  )"
+
+  if [[ -z "${selected:-}" ]]; then
+    return 1
+  fi
+
+  echo "$selected"
+}
+
+resolve_repo_root() {
+  local repo_path="$1"
+
+  [[ -d "$repo_path" ]] || die "Repo path not found: $repo_path"
+
+  if (cd "$repo_path" && git rev-parse --show-toplevel >/dev/null 2>&1); then
+    (cd "$repo_path" && git rev-parse --show-toplevel)
+  else
+    realpath_compat "$repo_path"
+  fi
+}
+
+resolve_article_dir() {
+  local arg="$1"
+
+  if [[ "$arg" == /* ]]; then
+    [[ -d "$arg" ]] || die "Article dir not found: $arg"
+    realpath_compat "$arg"
+    return 0
+  fi
+
+  if [[ -d "$arg" ]]; then
+    realpath_compat "$arg"
+    return 0
+  fi
+
+  if [[ -d "$ARTICLES_ROOT/$arg" ]]; then
+    realpath_compat "$ARTICLES_ROOT/$arg"
+    return 0
+  fi
+
+  die "Article dir not found: $arg"
+}
+
+force=0
+args=()
+
+while [[ $# -gt 0 ]]; do
+  case "$1" in
+    -f|--force)
+      force=1
+      shift
+      ;;
+    -h|--help)
+      usage
+      exit 0
+      ;;
+    --)
+      shift
+      while [[ $# -gt 0 ]]; do args+=("$1"); shift; done
+      ;;
+    -*)
+      die "Unknown option: $1" 2
+      ;;
+    *)
+      args+=("$1")
+      shift
+      ;;
+  esac
+done
+
+# Validate articles root
+[[ -d "$ARTICLES_ROOT" ]] || die "Articles folder not found: $ARTICLES_ROOT"
+
+# Default repo root is "current repo", or current directory if not in git.
+current_repo_root="$(git rev-parse --show-toplevel 2>/dev/null || pwd -P)"
+
+repo_root=""
+article_dir=""
+
+case "${#args[@]}" in
+  0)
+    repo_root="$current_repo_root"
+    article_dir="$(select_article_dir)" || exit 0
+    ;;
+  1)
+    if is_under_articles_root "${args[0]}" || [[ -d "$ARTICLES_ROOT/${args[0]}" ]]; then
+      repo_root="$current_repo_root"
+      article_dir="$(resolve_article_dir "${args[0]}")"
+    else
+      repo_root="$(resolve_repo_root "${args[0]}")"
+      article_dir="$(select_article_dir)" || exit 0
+    fi
+    ;;
+  2)
+    repo_root="$(resolve_repo_root "${args[0]}")"
+    article_dir="$(resolve_article_dir "${args[1]}")"
+    ;;
+  *)
+    usage
+    exit 2
+    ;;
+esac
 
 target="$article_dir/ref"
 
+repo_root_resolved="$(realpath_compat "$repo_root")"
+
 if [[ -L "$target" ]]; then
-  if [[ "$(readlink -f "$target")" == "$(readlink -f "$repo_root")" ]]; then
-    echo "Symlink already correct: $target -> $repo_root"
-    exit 0
+  current_target_resolved=""
+  if current_target_resolved="$(realpath_compat "$target" 2>/dev/null)"; then
+    if [[ "$current_target_resolved" == "$repo_root_resolved" ]]; then
+      echo "Symlink already correct: $target -> $repo_root"
+      exit 0
+    fi
   fi
-  read -r -p "Symlink exists at $target. Replace? [y/N] " answer
-  if [[ ! "$answer" =~ ^[Yy]$ ]]; then
-    echo "Aborted."
-    exit 1
+
+  if [[ "$force" -ne 1 ]]; then
+    read -r -p "Symlink exists at $target. Replace? [y/N] " answer
+    if [[ ! "${answer:-}" =~ ^[Yy]$ ]]; then
+      echo "Aborted."
+      exit 1
+    fi
   fi
+
   rm -f -- "$target"
 elif [[ -e "$target" ]]; then
-  echo "Target exists and is not a symlink: $target" >&2
-  exit 1
+  die "Target exists and is not a symlink: $target"
 fi
 
 ln -s "$repo_root" "$target"

@@ -105,3 +105,14 @@ export PATH="$HOME/.local/bin:$PATH"
 
 #Postgres
 export PGDATA="$(psql -U postgres -c 'SHOW data_directory' --tuples-only | sed 's/^[ \t]*//')"
+
+# bun completions
+[ -s "/home/javi/.bun/_bun" ] && source "/home/javi/.bun/_bun"
+
+# bun
+export BUN_INSTALL="$HOME/.bun"
+export PATH="$BUN_INSTALL/bin:$PATH"
+
+# >>> railway initialize >>>
+source "$HOME/.railway/env"
+# <<< railway initialize <<<
